@@ -1,8 +1,11 @@
 import { create } from 'zustand';
-import type { VehicleAllocation } from '../types';
-import { initialAllocations, generateId } from '../data/mockData';
+import type { ShiftRecord, VehicleAllocation } from '../types';
 import { createResource, deleteResource, listResource, patchResource } from '../api/resources';
 import { showApiErrorToast } from './apiErrors';
+import { useOrderStore } from './orderStore';
+import { useHubStore } from './hubStore';
+import { useShiftHistoryStore } from './shiftHistoryStore';
+import { generateId } from '../utils/id';
 
 interface AllocationStore {
   allocations: VehicleAllocation[];
@@ -18,7 +21,7 @@ interface AllocationStore {
 }
 
 export const useAllocationStore = create<AllocationStore>((set, get) => ({
-  allocations: initialAllocations,
+  allocations: [],
   isLoading: false,
   isLoaded: false,
   loadAllocations: async () => {
@@ -29,7 +32,7 @@ export const useAllocationStore = create<AllocationStore>((set, get) => ({
       set({ allocations, isLoaded: true, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
-      showApiErrorToast('Could not load allocations', 'Using local fallback data.', error);
+      showApiErrorToast('Could not load allocations', 'Please check API connectivity and retry.', error);
     }
   },
   addAllocation: (data) => {
@@ -69,14 +72,51 @@ export const useAllocationStore = create<AllocationStore>((set, get) => ({
   },
   endShift: (allocId) => {
     const prevAllocation = useAllocationStore.getState().allocations.find((a) => a.id === allocId);
+    const prevHistory = useShiftHistoryStore.getState().history;
+    const allocation = get().allocations.find((a) => a.id === allocId);
+    if (!allocation) return;
+
     const endTime = new Date().toISOString();
+    const assignedOrders = useOrderStore
+      .getState()
+      .orders.filter((o) => o.assignedDriverId === allocation.driverId && o.deliveryDate === allocation.date);
+    const hubs = useHubStore.getState().hubs;
+    const deliveries = assignedOrders.map((order) => {
+      const destinationName = hubs.find((h) => h.id === order.destinationId)?.name ?? 'Unknown';
+      return {
+        orderId: order.id,
+        destinationId: order.destinationId,
+        destinationName,
+        product: order.product,
+        quantity: order.quantity,
+        status: order.status === 'delivered' || order.status === 'failed' ? order.status : 'pending',
+        completedAt: order.deliveredAt,
+        failReason: order.failReason,
+      };
+    });
+
+    const historyRecord: ShiftRecord = {
+      id: `shift-${allocId}`,
+      driverId: allocation.driverId,
+      vehicleId: allocation.vehicleId,
+      date: allocation.date,
+      startTime: allocation.startTime ?? endTime,
+      endTime,
+      deliveries,
+    };
+    useShiftHistoryStore.getState().upsertRecord(historyRecord);
+
     set((s) => ({
       allocations: s.allocations.map((a) => (a.id === allocId ? { ...a, shiftEnded: true, endTime } : a)),
     }));
+    void patchResource<ShiftRecord>('shiftHistory', historyRecord.id, historyRecord).catch(() =>
+      createResource('shiftHistory', historyRecord).catch(() => undefined)
+    );
     void patchResource<VehicleAllocation>('allocations', allocId, { shiftEnded: true, endTime }).catch((error) => {
       if (prevAllocation) {
         set((s) => ({ allocations: s.allocations.map((a) => (a.id === allocId ? prevAllocation : a)) }));
       }
+      useShiftHistoryStore.setState({ history: prevHistory });
       showApiErrorToast('Could not end shift', 'Shift state was reverted.', error);
     });
   },

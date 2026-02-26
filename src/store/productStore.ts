@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import type { Product } from '../types';
-import { initialProducts, generateId } from '../data/mockData';
 import { createResource, deleteResource, listResource, patchResource } from '../api/resources';
 import { showApiErrorToast } from './apiErrors';
+import { generateId } from '../utils/id';
 
 interface ProductStore {
   products: Product[];
@@ -15,7 +15,7 @@ interface ProductStore {
 }
 
 export const useProductStore = create<ProductStore>((set, get) => ({
-  products: initialProducts,
+  products: [],
   isLoading: false,
   isLoaded: false,
   loadProducts: async () => {
@@ -26,7 +26,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       set({ products, isLoaded: true, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
-      showApiErrorToast('Could not load products', 'Using local fallback data.', error);
+      showApiErrorToast('Could not load products', 'Please check API connectivity and retry.', error);
     }
   },
   addProduct: (data) => {

@@ -55,7 +55,7 @@
         "lng": -122.3994
       },
       "inventory": {
-        "diesel": 6200,
+        "diesel": 16200,
         "petrol": 3800
       }
     },
@@ -345,6 +345,104 @@
       "status": "delivered",
       "createdAt": "2026-02-26T03:34:40.208Z",
       "deliveredAt": "2026-02-26T03:35:12.360Z"
+    },
+    {
+      "id": "order-107",
+      "destinationId": "terminal-2",
+      "product": "diesel",
+      "quantity": 5000,
+      "deliveryDate": "2026-02-26",
+      "assignedDriverId": "driver-4",
+      "status": "delivered",
+      "createdAt": "2026-02-26T04:38:21.981Z",
+      "deliveredAt": "2026-02-26T10:48:29.645Z"
+    },
+    {
+      "id": "order-104",
+      "destinationId": "terminal-2",
+      "product": "diesel",
+      "quantity": 5000,
+      "deliveryDate": "2026-02-26",
+      "assignedDriverId": "driver-4",
+      "status": "delivered",
+      "createdAt": "2026-02-26T04:51:02.307Z",
+      "deliveredAt": "2026-02-26T10:48:33.837Z"
+    },
+    {
+      "id": "order-mm30hkqt-i69en2",
+      "destinationId": "terminal-1",
+      "product": "diesel",
+      "quantity": 5000,
+      "deliveryDate": "2026-02-26",
+      "assignedDriverId": "driver-3",
+      "status": "assigned",
+      "createdAt": "2026-02-26T05:17:20.069Z"
+    },
+    {
+      "id": "order-mm3dji7o-mrcn98",
+      "destinationId": "terminal-3",
+      "product": "diesel",
+      "quantity": 5000,
+      "deliveryDate": "2026-02-26",
+      "assignedDriverId": "driver-5",
+      "status": "assigned",
+      "createdAt": "2026-02-26T11:22:45.108Z"
+    },
+    {
+      "id": "order-mm3e0c7g-ygtjmm",
+      "destinationId": "terminal-1",
+      "product": "diesel",
+      "quantity": 5000,
+      "deliveryDate": "2026-02-26",
+      "assignedDriverId": "driver-5",
+      "status": "assigned",
+      "createdAt": "2026-02-26T11:35:50.476Z"
+    }
+  ],
+  "gpsUpdates": [
+    {
+      "driverId": "driver-1",
+      "vehicleId": "vehicle-1",
+      "coordinates": {
+        "lat": 37.779,
+        "lng": -122.42
+      },
+      "timestamp": "2026-02-26T11:00:00.000Z",
+      "speed": 0,
+      "heading": 0
+    },
+    {
+      "driverId": "driver-2",
+      "vehicleId": "vehicle-2",
+      "coordinates": {
+        "lat": 37.765,
+        "lng": -122.451
+      },
+      "timestamp": "2026-02-26T11:00:00.000Z",
+      "speed": 0,
+      "heading": 270
+    },
+    {
+      "driverId": "driver-3",
+      "vehicleId": "vehicle-3",
+      "coordinates": {
+        "lat": 37.778,
+        "lng": -122.445
+      },
+      "timestamp": "2026-02-26T11:00:00.000Z",
+      "speed": 28,
+      "heading": 180
+    },
+    {
+      "driverId": "driver-4",
+      "vehicleId": "vehicle-4",
+      "coordinates": {
+        "lat": 37.761,
+        "lng": -122.407
+      },
+      "timestamp": "2026-02-26T11:00:00.000Z",
+      "speed": 0,
+      "heading": 120
     }
   ],
   "allocations": [
@@ -384,6 +482,128 @@
       "date": "2026-02-27",
       "shiftStarted": false,
       "shiftEnded": false
+    },
+    {
+      "id": "alloc-mm30xem1-2kfwgo",
+      "vehicleId": "vehicle-4",
+      "driverId": "driver-4",
+      "date": "2026-02-26",
+      "shiftStarted": true,
+      "shiftEnded": true,
+      "startTime": "2026-02-26T10:48:18.261Z",
+      "endTime": "2026-02-26T10:48:37.885Z"
+    },
+    {
+      "id": "alloc-mm3e07ek-vq065f",
+      "vehicleId": "vehicle-7",
+      "driverId": "driver-5",
+      "date": "2026-02-26",
+      "shiftStarted": false,
+      "shiftEnded": false
+    }
+  ],
+  "shiftHistory": [
+    {
+      "id": "shift-alloc-1",
+      "driverId": "driver-1",
+      "vehicleId": "vehicle-1",
+      "date": "2026-02-26",
+      "startTime": "2026-02-26T03:18:10.627Z",
+      "endTime": "2026-02-26T03:19:58.919Z",
+      "deliveries": [
+        {
+          "orderId": "order-1",
+          "destinationId": "terminal-1",
+          "destinationName": "Marina Gas Station",
+          "product": "diesel",
+          "quantity": 5000,
+          "status": "delivered",
+          "completedAt": "2026-02-26T03:19:46.118Z"
+        },
+        {
+          "orderId": "order-2",
+          "destinationId": "terminal-2",
+          "destinationName": "Mission Fuel Stop",
+          "product": "petrol",
+          "quantity": 3000,
+          "status": "delivered",
+          "completedAt": "2026-02-26T03:19:55.038Z"
+        },
+        {
+          "orderId": "order-101",
+          "destinationId": "terminal-1",
+          "destinationName": "Marina Gas Station",
+          "product": "diesel",
+          "quantity": 5000,
+          "status": "delivered",
+          "completedAt": "2026-02-26T03:19:52.062Z"
+        },
+        {
+          "orderId": "order-111",
+          "destinationId": "terminal-2",
+          "destinationName": "Mission Fuel Stop",
+          "product": "diesel",
+          "quantity": 5000,
+          "status": "delivered",
+          "completedAt": "2026-02-26T03:23:21.063Z"
+        }
+      ]
+    },
+    {
+      "id": "shift-alloc-2",
+      "driverId": "driver-2",
+      "vehicleId": "vehicle-2",
+      "date": "2026-02-26",
+      "startTime": "2026-02-26T03:23:53.023Z",
+      "endTime": "2026-02-26T03:35:16.889Z",
+      "deliveries": [
+        {
+          "orderId": "order-3",
+          "destinationId": "terminal-3",
+          "destinationName": "Sunset Petroleum",
+          "product": "diesel",
+          "quantity": 7000,
+          "status": "delivered",
+          "completedAt": "2026-02-26T03:23:49.919Z"
+        },
+        {
+          "orderId": "order-102",
+          "destinationId": "terminal-1",
+          "destinationName": "Marina Gas Station",
+          "product": "diesel",
+          "quantity": 5000,
+          "status": "delivered",
+          "completedAt": "2026-02-26T03:35:12.360Z"
+        }
+      ]
+    },
+    {
+      "id": "shift-alloc-mm30xem1-2kfwgo",
+      "driverId": "driver-4",
+      "vehicleId": "vehicle-4",
+      "date": "2026-02-26",
+      "startTime": "2026-02-26T10:48:18.261Z",
+      "endTime": "2026-02-26T10:48:37.885Z",
+      "deliveries": [
+        {
+          "orderId": "order-107",
+          "destinationId": "terminal-2",
+          "destinationName": "Mission Fuel Stop",
+          "product": "diesel",
+          "quantity": 5000,
+          "status": "delivered",
+          "completedAt": "2026-02-26T10:48:29.645Z"
+        },
+        {
+          "orderId": "order-104",
+          "destinationId": "terminal-2",
+          "destinationName": "Mission Fuel Stop",
+          "product": "diesel",
+          "quantity": 5000,
+          "status": "delivered",
+          "completedAt": "2026-02-26T10:48:33.837Z"
+        }
+      ]
     }
   ]
 }

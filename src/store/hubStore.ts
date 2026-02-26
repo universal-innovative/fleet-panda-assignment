@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import type { Hub } from '../types';
-import { initialHubs, generateId } from '../data/mockData';
 import { createResource, deleteResource, listResource, patchResource } from '../api/resources';
 import { showApiErrorToast } from './apiErrors';
+import { generateId } from '../utils/id';
 
 interface HubStore {
   hubs: Hub[];
@@ -16,7 +16,7 @@ interface HubStore {
 }
 
 export const useHubStore = create<HubStore>((set, get) => ({
-  hubs: initialHubs,
+  hubs: [],
   isLoading: false,
   isLoaded: false,
   loadHubs: async () => {
@@ -27,7 +27,7 @@ export const useHubStore = create<HubStore>((set, get) => ({
       set({ hubs, isLoaded: true, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
-      showApiErrorToast('Could not load locations', 'Using local fallback data.', error);
+      showApiErrorToast('Could not load locations', 'Please check API connectivity and retry.', error);
     }
   },
   addHub: (data) => {

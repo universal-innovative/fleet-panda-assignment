@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Icons } from '../ui/Icons';
 import { cn } from '../../utils/helpers';
-import { useAllocationStore, useDriverStore, useHubStore, useOrderStore, useProductStore, useToastStore, useVehicleStore } from '../../store';
+import { useAllocationStore, useDriverStore, useGPSStore, useHubStore, useOrderStore, useProductStore, useToastStore, useVehicleStore } from '../../store';
 
 const navItems = [
   { to: '/admin', icon: Icons.Dashboard, label: 'Dashboard', end: true },
@@ -29,6 +29,7 @@ export default function AdminLayout() {
   const loadVehicles = useVehicleStore((s) => s.loadVehicles);
   const loadOrders = useOrderStore((s) => s.loadOrders);
   const loadAllocations = useAllocationStore((s) => s.loadAllocations);
+  const loadGpsUpdates = useGPSStore((s) => s.loadUpdates);
 
   useEffect(() => {
     const path = location.pathname;
@@ -43,15 +44,15 @@ export default function AdminLayout() {
       void Promise.all([loadAllocations(), loadVehicles(), loadDrivers()]);
     }
     if (path.startsWith('/admin/fleet-map')) {
-      void Promise.all([loadDrivers(), loadVehicles(), loadHubs(), loadOrders(), loadAllocations()]);
+      void Promise.all([loadDrivers(), loadVehicles(), loadHubs(), loadOrders(), loadAllocations(), loadGpsUpdates()]);
     }
     if (path.startsWith('/admin/inventory')) {
       void Promise.all([loadHubs(), loadProducts()]);
     }
     if (path === '/admin') {
-      void Promise.all([loadHubs(), loadDrivers(), loadVehicles(), loadOrders(), loadAllocations()]);
+      void Promise.all([loadHubs(), loadDrivers(), loadVehicles(), loadOrders(), loadAllocations(), loadGpsUpdates()]);
     }
-  }, [location.pathname, loadAllocations, loadDrivers, loadHubs, loadOrders, loadProducts, loadVehicles]);
+  }, [location.pathname, loadAllocations, loadDrivers, loadGpsUpdates, loadHubs, loadOrders, loadProducts, loadVehicles]);
 
   const searchablePages = useMemo(() => ([
     ...navItems,

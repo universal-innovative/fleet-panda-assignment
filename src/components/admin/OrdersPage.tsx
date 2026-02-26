@@ -1,11 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useOrderStore, useHubStore, useDriverStore, useToastStore, useProductStore } from '../../store';
 import { Icons } from '../ui/Icons';
 import Modal from '../common/Modal';
 import EmptyState from '../common/EmptyState';
 import { cn, STATUS_COLORS, STATUS_LABELS, getProductLabel, formatDate, getToday } from '../../utils/helpers';
-import type { Order, OrderStatus, ProductType } from '../../types';
+import type { OrderStatus, ProductType } from '../../types';
+
+const PENDING_CREATE_KEY = 'orders.pendingCreate';
+const PENDING_ASSIGN_KEY = 'orders.pendingAssign';
 
 export default function OrdersPage() {
   const { orders, addOrder, assignDriver, updateStatus, deleteOrder } = useOrderStore();
@@ -13,6 +16,7 @@ export default function OrdersPage() {
   const drivers = useDriverStore((s) => s.drivers);
   const products = useProductStore((s) => s.products);
   const addToast = useToastStore((s) => s.addToast);
+  const navigate = useNavigate();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
@@ -33,13 +37,56 @@ export default function OrdersPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Open create modal from URL param
+  function openAllocationFlow(driverId: string, deliveryDate: string, resume: 'create' | 'assign') {
+    const target = `/admin/allocations?new=1&driverId=${encodeURIComponent(driverId)}&date=${encodeURIComponent(deliveryDate)}&returnTo=${encodeURIComponent('/admin/orders')}&resume=${resume}`;
+    navigate(target);
+  }
+
   useEffect(() => {
-    if (searchParams.get('new') === '1') {
+    const shouldOpenCreate = searchParams.get('new') === '1';
+    const resume = searchParams.get('resume');
+
+    if (shouldOpenCreate) {
       setCreateOpen(true);
+    }
+
+    if (resume === 'create') {
+      const raw = sessionStorage.getItem(PENDING_CREATE_KEY);
+      if (raw) {
+        try {
+          const draft = JSON.parse(raw) as typeof form;
+          setForm(draft);
+          setCreateOpen(true);
+          addToast({ type: 'info', title: 'Draft restored', message: 'Finish creating the order now that allocation exists.' });
+        } catch {
+          // Ignore malformed storage payload.
+        }
+      }
+      sessionStorage.removeItem(PENDING_CREATE_KEY);
+    }
+
+    if (resume === 'assign') {
+      const raw = sessionStorage.getItem(PENDING_ASSIGN_KEY);
+      if (raw) {
+        try {
+          const pending = JSON.parse(raw) as { orderId: string; driverId: string };
+          const result = assignDriver(pending.orderId, pending.driverId);
+          if (result.success) {
+            addToast({ type: 'success', title: 'Driver assigned', message: 'Order assignment completed after allocation.' });
+          } else {
+            addToast({ type: 'error', title: 'Assignment still blocked', message: result.error });
+          }
+        } catch {
+          // Ignore malformed storage payload.
+        }
+      }
+      sessionStorage.removeItem(PENDING_ASSIGN_KEY);
+    }
+
+    if (shouldOpenCreate || resume) {
       setSearchParams({});
     }
-  }, [searchParams, setSearchParams]);
+  }, [addToast, assignDriver, searchParams, setSearchParams]);
 
   const filtered = useMemo(() => {
     return orders.filter((o) => {
@@ -67,6 +114,13 @@ export default function OrdersPage() {
     if (!validate()) return;
     const result = addOrder(form);
     if (!result.success) {
+      if (form.assignedDriverId && result.error?.includes('Allocate a vehicle')) {
+        sessionStorage.setItem(PENDING_CREATE_KEY, JSON.stringify(form));
+        addToast({ type: 'warning', title: 'Allocation needed', message: 'Allocate vehicle first, then we will restore this order draft.' });
+        openAllocationFlow(form.assignedDriverId, form.deliveryDate, 'create');
+        setCreateOpen(false);
+        return;
+      }
       addToast({ type: 'error', title: 'Order creation blocked', message: result.error });
       return;
     }
@@ -79,6 +133,17 @@ export default function OrdersPage() {
     if (!assignOpen || !selectedDriver) return;
     const result = assignDriver(assignOpen, selectedDriver);
     if (!result.success) {
+      if (result.error?.includes('Allocate a vehicle')) {
+        const order = orders.find((o) => o.id === assignOpen);
+        if (order) {
+          sessionStorage.setItem(PENDING_ASSIGN_KEY, JSON.stringify({ orderId: assignOpen, driverId: selectedDriver }));
+          addToast({ type: 'warning', title: 'Allocation needed', message: 'Allocate vehicle first, then assignment will complete automatically.' });
+          openAllocationFlow(selectedDriver, order.deliveryDate, 'assign');
+          setAssignOpen(null);
+          setSelectedDriver('');
+          return;
+        }
+      }
       addToast({ type: 'error', title: 'Assignment blocked', message: result.error });
       return;
     }

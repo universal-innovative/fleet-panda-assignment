@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { useActiveDriverStore, useAllocationStore, useDriverStore, useHubStore, useOrderStore, useVehicleStore } from '../../store';
+import { useActiveDriverStore, useAllocationStore, useDriverStore, useGPSStore, useHubStore, useOrderStore, useShiftHistoryStore, useVehicleStore } from '../../store';
 import { Icons } from '../ui/Icons';
 import { cn } from '../../utils/helpers';
 
@@ -19,21 +19,23 @@ export default function DriverLayout() {
   const loadAllocations = useAllocationStore((s) => s.loadAllocations);
   const loadHubs = useHubStore((s) => s.loadHubs);
   const loadVehicles = useVehicleStore((s) => s.loadVehicles);
+  const loadHistory = useShiftHistoryStore((s) => s.loadHistory);
+  const loadGpsUpdates = useGPSStore((s) => s.loadUpdates);
   const drivers = useDriverStore((s) => s.drivers);
   const activeDriver = drivers.find((d) => d.id === activeDriverId);
 
   useEffect(() => {
     void loadDrivers();
     if (location.pathname.startsWith('/driver/map')) {
-      void Promise.all([loadAllocations(), loadOrders(), loadHubs(), loadVehicles()]);
+      void Promise.all([loadAllocations(), loadOrders(), loadHubs(), loadVehicles(), loadGpsUpdates()]);
     } else if (location.pathname.startsWith('/driver/deliveries')) {
       void Promise.all([loadAllocations(), loadOrders(), loadHubs()]);
     } else if (location.pathname.startsWith('/driver/history')) {
-      void Promise.all([loadVehicles(), loadHubs()]);
+      void Promise.all([loadVehicles(), loadHubs(), loadHistory()]);
     } else {
       void Promise.all([loadAllocations(), loadOrders(), loadVehicles(), loadHubs()]);
     }
-  }, [loadAllocations, loadDrivers, loadHubs, loadOrders, loadVehicles, location.pathname]);
+  }, [loadAllocations, loadDrivers, loadGpsUpdates, loadHubs, loadHistory, loadOrders, loadVehicles, location.pathname]);
 
   return (
     <div className="min-h-screen bg-surface-50">

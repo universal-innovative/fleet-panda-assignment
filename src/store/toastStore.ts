@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Toast } from '../types';
-import { generateId } from '../data/mockData';
+import { generateId } from '../utils/id';
 
 interface ToastStore {
   toasts: Toast[];
@@ -19,4 +19,3 @@ export const useToastStore = create<ToastStore>((set) => ({
   },
   removeToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 }));
-

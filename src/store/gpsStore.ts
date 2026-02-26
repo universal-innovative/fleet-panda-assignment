@@ -1,16 +1,33 @@
 import { create } from 'zustand';
 import type { GPSUpdate } from '../types';
-import { initialGPSUpdates } from '../data/mockData';
+import { listResource } from '../api/resources';
+import { showApiErrorToast } from './apiErrors';
 
 interface GPSStore {
   updates: GPSUpdate[];
+  isLoading: boolean;
+  isLoaded: boolean;
+  loadUpdates: () => Promise<void>;
   sendUpdate: (update: GPSUpdate) => void;
   getDriverLocation: (driverId: string) => GPSUpdate | undefined;
   simulateMovement: () => void;
 }
 
 export const useGPSStore = create<GPSStore>((set, get) => ({
-  updates: initialGPSUpdates,
+  updates: [],
+  isLoading: false,
+  isLoaded: false,
+  loadUpdates: async () => {
+    if (get().isLoading || get().isLoaded) return;
+    set({ isLoading: true });
+    try {
+      const updates = await listResource<GPSUpdate>('gpsUpdates');
+      set({ updates, isLoaded: true, isLoading: false });
+    } catch (error) {
+      set({ isLoading: false });
+      showApiErrorToast('Could not load GPS updates', 'Please check API connectivity and retry.', error);
+    }
+  },
   sendUpdate: (update) =>
     set((s) => {
       const filtered = s.updates.filter((u) => u.driverId !== update.driverId);
@@ -31,4 +48,3 @@ export const useGPSStore = create<GPSStore>((set, get) => ({
       })),
     })),
 }));
-

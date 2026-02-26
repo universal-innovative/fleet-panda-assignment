@@ -55,7 +55,7 @@
 - [x] `docs/STATE_MANAGEMENT.md`
 - [x] `docs/DECISIONS.md`
 - [ ] Demo video (2-3 min) OR deployed URL (manual step)
-- [ ] Add final coverage percentage screenshot/output to submission (manual step)
+- [x] Add final coverage percentage screenshot/output to submission (`docs/COVERAGE.md`)
 
 ## Verification Commands
 ```bash

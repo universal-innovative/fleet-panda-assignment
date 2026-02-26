@@ -44,6 +44,7 @@ export default function FleetMapPage() {
 
   const today = getToday();
   const todayAllocations = allocations.filter((a) => a.date === today && a.shiftStarted && !a.shiftEnded);
+  const activeDriverIds = useMemo(() => new Set(todayAllocations.map((a) => a.driverId)), [todayAllocations]);
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
@@ -62,16 +63,17 @@ export default function FleetMapPage() {
 
   const filteredUpdates = useMemo(() => {
     return gpsUpdates.filter((u) => {
+      if (!activeDriverIds.has(u.driverId)) return false;
       if (filterDriver && u.driverId !== filterDriver) return false;
       if (filterVehicle && u.vehicleId !== filterVehicle) return false;
       if (filterStatus !== 'all') {
-        const driverOrders = orders.filter((o) => o.assignedDriverId === u.driverId);
+        const driverOrders = orders.filter((o) => o.assignedDriverId === u.driverId && o.deliveryDate === today);
         const hasStatus = driverOrders.some((o) => o.status === filterStatus);
         if (!hasStatus) return false;
       }
       return true;
     });
-  }, [gpsUpdates, filterDriver, filterVehicle, filterStatus, orders]);
+  }, [activeDriverIds, filterDriver, filterStatus, filterVehicle, gpsUpdates, orders, today]);
 
   const center: [number, number] = [37.7749, -122.4194];
 
@@ -96,8 +98,11 @@ export default function FleetMapPage() {
           </select>
           <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)} className="select-field py-1.5 text-xs w-auto">
             <option value="all">All Status</option>
+            <option value="pending">Pending</option>
             <option value="assigned">Assigned</option>
             <option value="in-transit">In Transit</option>
+            <option value="delivered">Delivered</option>
+            <option value="failed">Failed</option>
           </select>
           <label className="flex items-center gap-2 text-xs text-surface-600 cursor-pointer">
             <input type="checkbox" checked={showHubs} onChange={(e) => setShowHubs(e.target.checked)} className="rounded border-surface-300" />

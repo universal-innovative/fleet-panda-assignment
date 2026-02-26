@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import type { Driver } from '../types';
-import { initialDrivers, generateId } from '../data/mockData';
 import { createResource, deleteResource, listResource, patchResource } from '../api/resources';
 import { showApiErrorToast } from './apiErrors';
+import { generateId } from '../utils/id';
 
 interface DriverStore {
   drivers: Driver[];
@@ -15,7 +15,7 @@ interface DriverStore {
 }
 
 export const useDriverStore = create<DriverStore>((set, get) => ({
-  drivers: initialDrivers,
+  drivers: [],
   isLoading: false,
   isLoaded: false,
   loadDrivers: async () => {
@@ -26,7 +26,7 @@ export const useDriverStore = create<DriverStore>((set, get) => ({
       set({ drivers, isLoaded: true, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
-      showApiErrorToast('Could not load drivers', 'Using local fallback data.', error);
+      showApiErrorToast('Could not load drivers', 'Please check API connectivity and retry.', error);
     }
   },
   addDriver: (data) => {

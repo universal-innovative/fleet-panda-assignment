@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import type { Order, OrderStatus } from '../types';
-import { initialOrders, generateId } from '../data/mockData';
 import { createResource, deleteResource, listResource, patchResource } from '../api/resources';
 import { showApiErrorToast } from './apiErrors';
 import { useAllocationStore } from './allocationStore';
+import { generateId } from '../utils/id';
 
 interface OrderStore {
   orders: Order[];
@@ -18,7 +18,7 @@ interface OrderStore {
 }
 
 export const useOrderStore = create<OrderStore>((set, get) => ({
-  orders: initialOrders,
+  orders: [],
   isLoading: false,
   isLoaded: false,
   loadOrders: async () => {
@@ -29,14 +29,18 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
       set({ orders, isLoaded: true, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
-      showApiErrorToast('Could not load orders', 'Using local fallback data.', error);
+      showApiErrorToast('Could not load orders', 'Please check API connectivity and retry.', error);
     }
   },
   addOrder: (data) => {
     if (data.assignedDriverId) {
-      const shiftEnded = useAllocationStore.getState().allocations.some(
-        (a) => a.driverId === data.assignedDriverId && a.date === data.deliveryDate && a.shiftEnded
-      );
+      const allocation = useAllocationStore
+        .getState()
+        .allocations.find((a) => a.driverId === data.assignedDriverId && a.date === data.deliveryDate);
+      if (!allocation) {
+        return { success: false, error: 'Cannot assign order. Allocate a vehicle to this driver for the delivery date first.' };
+      }
+      const shiftEnded = allocation.shiftEnded;
       if (shiftEnded) {
         return { success: false, error: 'Cannot assign order. Driver shift has already ended for this date.' };
       }
@@ -66,9 +70,13 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
       return { success: false, error: 'Order not found.' };
     }
 
-    const shiftEnded = useAllocationStore.getState().allocations.some(
-      (a) => a.driverId === driverId && a.date === order.deliveryDate && a.shiftEnded
-    );
+    const allocation = useAllocationStore
+      .getState()
+      .allocations.find((a) => a.driverId === driverId && a.date === order.deliveryDate);
+    if (!allocation) {
+      return { success: false, error: 'Cannot assign order. Allocate a vehicle to this driver for the delivery date first.' };
+    }
+    const shiftEnded = allocation.shiftEnded;
     if (shiftEnded) {
       return { success: false, error: 'Cannot assign order. Driver shift has already ended for this date.' };
     }

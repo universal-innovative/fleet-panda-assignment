@@ -248,12 +248,34 @@ describe('OrderStore', () => {
   it('assigns a driver to an order', () => {
     const orderId = useOrderStore.getState().orders.find((o) => o.status === 'pending')?.id;
     if (!orderId) return;
+    const order = useOrderStore.getState().orders.find((o) => o.id === orderId);
+    if (!order) return;
+    const hasAllocation = useAllocationStore
+      .getState()
+      .allocations.some((a) => a.driverId === 'driver-1' && a.date === order.deliveryDate);
+    if (!hasAllocation) {
+      act(() => {
+        useAllocationStore.setState({
+          allocations: [
+            ...useAllocationStore.getState().allocations,
+            {
+              id: 'alloc-test-driver-1',
+              vehicleId: 'vehicle-1',
+              driverId: 'driver-1',
+              date: order.deliveryDate,
+              shiftStarted: false,
+              shiftEnded: false,
+            },
+          ],
+        });
+      });
+    }
     act(() => {
       useOrderStore.getState().assignDriver(orderId, 'driver-1');
     });
-    const order = useOrderStore.getState().orders.find((o) => o.id === orderId);
-    expect(order?.assignedDriverId).toBe('driver-1');
-    expect(order?.status).toBe('assigned');
+    const updated = useOrderStore.getState().orders.find((o) => o.id === orderId);
+    expect(updated?.assignedDriverId).toBe('driver-1');
+    expect(updated?.status).toBe('assigned');
   });
 
   it('updates order status', () => {
@@ -313,6 +335,44 @@ describe('OrderStore', () => {
       status: 'assigned',
     });
     expect(result.success).toBe(false);
+    expect(useOrderStore.getState().orders.length).toBe(beforeCount);
+  });
+
+  it('blocks assigning a driver when no allocation exists for that delivery date', () => {
+    const today = new Date().toISOString().split('T')[0];
+    act(() => {
+      useAllocationStore.setState({
+        allocations: useAllocationStore.getState().allocations.filter((a) => !(a.driverId === 'driver-1' && a.date === today)),
+      });
+    });
+
+    const pendingOrderId = useOrderStore.getState().orders.find((o) => o.deliveryDate === today && o.status === 'pending')?.id;
+    if (!pendingOrderId) return;
+
+    const result = useOrderStore.getState().assignDriver(pendingOrderId, 'driver-1');
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('Allocate a vehicle');
+  });
+
+  it('blocks creating a pre-assigned order when no allocation exists for driver/date', () => {
+    const today = new Date().toISOString().split('T')[0];
+    act(() => {
+      useAllocationStore.setState({
+        allocations: useAllocationStore.getState().allocations.filter((a) => !(a.driverId === 'driver-1' && a.date === today)),
+      });
+    });
+
+    const beforeCount = useOrderStore.getState().orders.length;
+    const result = useOrderStore.getState().addOrder({
+      destinationId: 'terminal-1',
+      product: 'diesel',
+      quantity: 1000,
+      deliveryDate: today,
+      assignedDriverId: 'driver-1',
+      status: 'assigned',
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('Allocate a vehicle');
     expect(useOrderStore.getState().orders.length).toBe(beforeCount);
   });
 });

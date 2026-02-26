@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import type { Vehicle } from '../types';
-import { initialVehicles, generateId } from '../data/mockData';
 import { createResource, deleteResource, listResource, patchResource } from '../api/resources';
 import { showApiErrorToast } from './apiErrors';
+import { generateId } from '../utils/id';
 
 interface VehicleStore {
   vehicles: Vehicle[];
@@ -15,7 +15,7 @@ interface VehicleStore {
 }
 
 export const useVehicleStore = create<VehicleStore>((set, get) => ({
-  vehicles: initialVehicles,
+  vehicles: [],
   isLoading: false,
   isLoaded: false,
   loadVehicles: async () => {
@@ -26,7 +26,7 @@ export const useVehicleStore = create<VehicleStore>((set, get) => ({
       set({ vehicles, isLoaded: true, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
-      showApiErrorToast('Could not load vehicles', 'Using local fallback data.', error);
+      showApiErrorToast('Could not load vehicles', 'Please check API connectivity and retry.', error);
     }
   },
   addVehicle: (data) => {

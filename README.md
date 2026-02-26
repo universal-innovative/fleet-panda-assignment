@@ -70,7 +70,7 @@ Stores are modularized under `src/store/`:
 
 ### API
 - Generic client at `src/api/resources.ts`
-- Startup hydration from API in `src/main.tsx`
+- Route-aware loading in `AdminLayout` and `DriverLayout` using store `load*` actions
 - Optimistic updates with rollback + toast error handling in stores
 
 ## Routes

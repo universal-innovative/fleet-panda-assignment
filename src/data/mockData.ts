@@ -258,8 +258,8 @@ export const initialShiftHistory: ShiftRecord[] = [
 
 // ─── Helper: generate unique ID ─────────────────────────────────
 
-let counter = 100;
 export const generateId = (prefix: string): string => {
-  counter++;
-  return `${prefix}-${counter}`;
+  const time = Date.now().toString(36);
+  const random = Math.random().toString(36).slice(2, 8);
+  return `${prefix}-${time}-${random}`;
 };

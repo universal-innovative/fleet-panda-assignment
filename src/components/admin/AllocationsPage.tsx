@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAllocationStore, useDriverStore, useVehicleStore, useToastStore } from '../../store';
 import { Icons } from '../ui/Icons';
 import Modal from '../common/Modal';
@@ -10,8 +10,9 @@ export default function AllocationsPage() {
   const drivers = useDriverStore((s) => s.drivers);
   const vehicles = useVehicleStore((s) => s.vehicles);
   const addToast = useToastStore((s) => s.addToast);
+  const navigate = useNavigate();
 
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [createOpen, setCreateOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
@@ -22,11 +23,12 @@ export default function AllocationsPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (searchParams.get('new') === '1') {
-      setCreateOpen(true);
-      setSearchParams({});
-    }
-  }, [searchParams, setSearchParams]);
+    if (searchParams.get('new') !== '1') return;
+    const driverId = searchParams.get('driverId') || '';
+    const date = searchParams.get('date') || getToday();
+    setForm((prev) => ({ ...prev, driverId, date }));
+    setCreateOpen(true);
+  }, [searchParams]);
 
   // Calendar days
   const calendarDays = useMemo(() => {
@@ -60,6 +62,14 @@ export default function AllocationsPage() {
       return;
     }
     addToast({ type: 'success', title: 'Vehicle allocated' });
+    const returnTo = searchParams.get('returnTo');
+    const resume = searchParams.get('resume');
+    if (returnTo) {
+      const decodedReturnTo = decodeURIComponent(returnTo);
+      const query = resume ? `?resume=${encodeURIComponent(resume)}` : '';
+      navigate(`${decodedReturnTo}${query}`);
+      return;
+    }
     setCreateOpen(false);
     setForm({ vehicleId: '', driverId: '', date: getToday() });
   }
