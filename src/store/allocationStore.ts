@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ShiftRecord, VehicleAllocation } from '../types';
+import type { DeliveryRecord, ShiftRecord, VehicleAllocation } from '../types';
 import { createResource, deleteResource, listResource, patchResource } from '../api/resources';
 import { showApiErrorToast } from './apiErrors';
 import { useOrderStore } from './orderStore';
@@ -81,15 +81,17 @@ export const useAllocationStore = create<AllocationStore>((set, get) => ({
       .getState()
       .orders.filter((o) => o.assignedDriverId === allocation.driverId && o.deliveryDate === allocation.date);
     const hubs = useHubStore.getState().hubs;
-    const deliveries = assignedOrders.map((order) => {
+    const deliveries: DeliveryRecord[] = assignedOrders.map((order) => {
       const destinationName = hubs.find((h) => h.id === order.destinationId)?.name ?? 'Unknown';
+      const status: DeliveryRecord['status'] =
+        order.status === 'delivered' || order.status === 'failed' ? order.status : 'pending';
       return {
         orderId: order.id,
         destinationId: order.destinationId,
         destinationName,
         product: order.product,
         quantity: order.quantity,
-        status: order.status === 'delivered' || order.status === 'failed' ? order.status : 'pending',
+        status,
         completedAt: order.deliveredAt,
         failReason: order.failReason,
       };

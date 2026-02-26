@@ -56,7 +56,7 @@ describe('runtime coverage', () => {
   });
 
   it('handles error boundary default fallback and reset', () => {
-    function Crasher() {
+    function Crasher(): never {
       throw new Error('boom');
     }
     const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -73,7 +73,7 @@ describe('runtime coverage', () => {
   });
 
   it('renders error boundary custom fallback', () => {
-    function Crasher() {
+    function Crasher(): never {
       throw new Error('x');
     }
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
